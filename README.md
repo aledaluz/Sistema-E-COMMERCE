@@ -1,5 +1,6 @@
 # Sistema E-COMMERCE
 Estudo dirigido - Disciplina Requisitos e Design de Software
+
 Uma empresa de médio porte pretende criar um sistema de e-commerce para vender seus produtos. 
 A empresa vende produtos esportivos e o foco inicial da loja é a venda de bicicletas e patinetes mecânicos e elétricos, de forma adicional, 
 os artigos relacionados: luvas, capacetes, garrafas d’água etc. 
