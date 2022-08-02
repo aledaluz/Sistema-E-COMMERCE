@@ -1,0 +1,140 @@
+package br.com.value.ecommerce.infra.dao;
+
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+
+import br.com.value.ecommerce.dominio.Produto;
+import br.com.value.ecommerce.dominio.Ecommerce;
+import br.com.value.ecommerce.dominio.Cliente;
+
+public class EcommerceDao {
+
+private Connection conexao;
+
+public EcommerceDao() {
+try {
+this.conexao = DriverManager.getConnection(
+"jdbc:mysql://localhost/Ecommerce.Produto_esportivos", "root", "");
+} catch (Exception e) {
+throw new RuntimeException(e);
+}
+}
+
+private Calendar data(Date date) {
+Calendar c = Calendar.getInstance();
+c.setTime(date);
+return c;
+}
+
+//cadastro de tipo de produtos, venda ou aluguel, analise do cadastro com os valores na tabela sql 
+
+public void salva(Ecommerce ecommerce) {
+try {
+String sql = "INSERT INTO ECOMMERCE (Tipo produto, Venda_ou_Aluguel, Analise_cadastro) VALUES (Bicicleta aro20 verde,Venda,cadastro_ok);";
+PreparedStatement ps = conexao.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+ps.setString(1, ecommerce.getTipo produto());
+ps.setDate(2, new java.sql.Date(ecommerce.getData().getTimeInMillis()));
+ps.setBoolean(3, ecommerce.isFinalizado());
+
+ps.execute();
+
+ResultSet generatedKeys = ps.getGeneratedKeys();
+        if (generatedKeys.next()) {
+            ecommerce.setId(generatedKeys.getInt(1));
+        }
+//cadastro do ID dos produtos e seus valores na tabela sql
+
+for(Produto produto : ecommerce.getProdutos()) {
+sql = "INSERT INTO PRODUTOS (Tipo Produto_ID, Venda_ou_Aluguel_ID, Valor_produto) VALUES (2,V,1510.0);";
+PreparedStatement ps2 = conexao.prepareStatement(sql);
+ps2.setInt(1, ecommerce.getId());
+ps2.setInt(2, produto.getCliente().getId());
+ps2.setDouble(3, produto.getMetrica());
+
+ps2.execute();
+ps2.close();
+
+}
+
+ps.close();
+
+} catch (SQLException e) {
+throw new RuntimeException(e);
+}
+
+}
+
+public List<Ecommerce> finalizados() {
+return foiFinalizado(true);
+}
+
+public List<Ecommerce> emAndamento() {
+return foiFinalizado(false);
+}
+
+private List<Ecommerce> foiFinalizado(boolean status) {
+try {
+String sql = "SELECT * FROM ECOMMERCE WHERE FINALIZADO = " + status + ";";
+
+PreparedStatement ps = conexao.prepareStatement(sql);
+ResultSet rs = ps.executeQuery();
+
+List<Ecommerce> ecommerce = new ArrayList<Ecommerce>();
+while(rs.next()) {
+Ecommerce ecommerce = new Ecommerce(rs.getString("Tipo produto"), data(rs.getDate("data")));
+ecommerce.setId(rs.getInt("id"));
+if(rs.getBoolean("finalizado")) ecommerce.finaliza();
+
+//selecao de produtos esportivos, cliente, nome completo e seus dados na tabela sql
+
+String sql2 = "Selecione o Produto_esportivos, Id_cliente, Nome completo, data_nascimento, endereço, cidade, CEP, Estado WHERE PRODUTOS = " + rs.getInt("id");
+PreparedStatement ps2 = conexao.prepareStatement(sql2);
+ResultSet rs2 = ps2.executeQuery();
+
+while(rs2.next()) {
+Cliente cliente = new Cliente(rs2.getInt("id"), rs2.getString("nome"));
+Produto produto = new Produto(cliente, rs2.getDouble("metrica"));
+
+ecommerce.anota(produto);
+}
+rs2.close();
+ps2.close();
+
+ecommerce.add(ecommerce);
+
+}
+rs.close();
+ps.close();
+
+return ecommerce;
+} catch (SQLException e) {
+throw new RuntimeException(e);
+}
+}
+
+public void atualiza(Ecommerce ecommerce) {
+
+try {
+String sql = "UPDATE ECOMMERCE SET Tipo produto=Patinete G preto, Venda_ou_Aluguel=A, WHERE ID = 10;";
+PreparedStatement ps = conexao.prepareStatement(sql);
+ps.setString(1, ecommerce.getTipo produto());
+ps.setDate(2, new java.sql.Date(ecommerce.getData().getTimeInMillis()));
+ps.setBoolean(3, ecommerce.isFinalizado());
+ps.setInt(4, ecommerce.getId());
+
+ps.execute();
+} catch (SQLException e) {
+throw new RuntimeException(e);
+}
+}
+
+public int x() { return 10; }
+}
